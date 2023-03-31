@@ -5,7 +5,7 @@ from Sintático.sintatico import *
 if __name__ == "__main__":
     lexical = Lexical("Léxico/file.txt")
     lexical.startTheAnalysis()
-    print('\nResultado do Análise Léxica\n')
+    print('\nResultado da Análise Léxica\n')
     tokens = lexical.getTokens()
     print(tokens)
     print('\nResultado da Análise Sintática\n')
