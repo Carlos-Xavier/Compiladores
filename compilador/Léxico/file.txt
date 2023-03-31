@@ -16,7 +16,7 @@ function somaPilha(p,a,c: pilha of real; c,d,e: pilha of integer): real;
 
 begin
     p := somaPilha(p);
-    p := # 1,2,3,4,5 #
+    p := # 1,2,3,4,5 #;
     conc:= concatena(p,# 1,2,3,4,5 #);
     conc:= concatena(p,##);
     p := inverte(p);

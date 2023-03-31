@@ -1,15 +1,13 @@
-import pickle
-from symbols import Symbols
-import os
+from Léxico.symbols import Symbols
+from Léxico.tokens import Token
 import sys
-from token import Token
+import os
 
 
-# Incompleto
 Symbols_table = {}
 
 
-class Lexico:
+class Lexical:
     symbols_lex = Symbols()
 
     def __init__(self, filename) -> None:
@@ -35,7 +33,7 @@ class Lexico:
     def getTokens(self) -> list:
         return self.__tokens
 
-    def readLines(self):
+    def startTheAnalysis(self):
         for line, content in enumerate(self.__fileLines):
             self.__line = line
             self.__content = content
@@ -193,13 +191,3 @@ class Lexico:
     def back(self):
         self.__column -= 1
 
-
-lexical = Lexico("file.txt")
-lexical.readLines()
-
-# with open("save.pickle", "wb") as f:
-#     pickle.dump(lexical.getTokens(), f)
-print(lexical.getTokens())
-
-
-print(Symbols_table)
