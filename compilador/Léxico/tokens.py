@@ -70,3 +70,28 @@ class Token:
         "<=": "TK_MENOR_IGUAL",
         "==": "TK_IGUAL"
     }
+
+     def __init__(self, nameType, lexeme, line, column) -> None:
+        self.__nameType = nameType
+        self.__type = self.tokenCategory[nameType]
+        self.__lexema = lexeme
+        self.__line = line
+        self.__column = column
+
+    def __str__(self) -> str:
+        return '%s[%04d, %04d] (%04d, %20s) (%s)' % (' '*14, self.__line, self.__column, self.__type, self.__nameType, self.__lexema)
+
+    def getType(self) -> int:
+        return self.__type
+
+    def getNameType(self) -> str:
+        return self.__nameType
+
+    def getLexema(self) -> str:
+        return self.__lexema
+
+    def getLine(self) -> str:
+        return self.__line
+
+    def getColumn(self) -> str:
+        return self.__column
