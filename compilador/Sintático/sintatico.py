@@ -1,3 +1,15 @@
+import sys, os
+import copy
+sys.path.insert(0, os.path.abspath('..'))
+
+from SymbolTable.symbolTable import SymbolTable, Symbol
+
+scope = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+
+table = SymbolTable()
+temp_scope = []
+others_ends = []
+
 """
  Método: RECURSIVE DESCENTE PARSER
  Para cada não-terminal, teremos que criar uma função que valide sua produção
@@ -7,6 +19,8 @@
 class Parser:
     def __init__(self, tokens):
         self.tokens = tokens
+        self.tokens_hist = tokens.copy()
+        self.count = 0
         self.look_ahead = self.nextToken()
 
     def nextToken(self):
@@ -14,6 +28,7 @@ class Parser:
         Return: retorna sempre o elemeno na cabeça da lista
         """
         if len(self.tokens) > 0:
+            self.count += 1
             a = self.tokens.pop(0)
             return a
         return ''
@@ -21,7 +36,7 @@ class Parser:
     def checkToken(self, char):
         if self.look_ahead != '':
             if self.look_ahead['token'] == char:
-                print(self.look_ahead['token'], char)
+                #print(self.look_ahead['token'], char)
                 self.look_ahead = self.nextToken()
                 return True
             else:
@@ -97,7 +112,7 @@ class Parser:
         <num> ::= <num>
         """
         if self.look_ahead['token'] == 'TK_NUMERO':
-            print(self.look_ahead)
+            #print(self.look_ahead)
             self.look_ahead = self.nextToken()
             return True
         return False
@@ -115,7 +130,7 @@ class Parser:
         <real> ::= <real>
         """
         if self.look_ahead['token'] == 'TK_FLOAT':
-            print(self.look_ahead)
+            #print(self.look_ahead)
             self.look_ahead = self.nextToken()
             return True
         return False
@@ -343,6 +358,8 @@ class Parser:
         <sentencas> end | repeat <sentencas> until ( <condicao> ) | while ( <condicao> ) do begin <sentencas> end | if
         ( <condicao> ) then begin <sentencas> end <pfalsa> | <id> := <expressao> | <chamada_procedimento>
         """
+        if self.look_ahead['token'] == 'RW_FOR' or self.look_ahead['token'] == 'RW_WHILE' or self.look_ahead['token'] == 'RW_IF' or self.look_ahead['token'] == 'RW_ELSE':
+            others_ends.append('end')
         if self.checkToken('RW_READ') and self.checkToken('TK_ABRIR_PARENTESES') and self.var_read() and self.checkToken('TK_FECHAR_PARENTESES'):
             return True
         elif self.checkToken('RW_WRITE') and self.checkToken('TK_ABRIR_PARENTESES') and self.var_write() and self.checkToken('TK_FECHAR_PARENTESES'):
@@ -353,7 +370,7 @@ class Parser:
             return True
         elif self.checkToken('RW_WHILE') and self.checkToken('TK_ABRIR_PARENTESES') and self.condicao() and self.checkToken('TK_FECHAR_PARENTESES') and self.checkToken('RW_DO') and self.checkToken('RW_BEGIN') and self.sentencas() and self.checkToken('RW_END'):
             return True
-        elif self.checkToken('RW_IF') and self.checkToken('TK_ABRIR_PARENTESES') and self.condicao() and self.checkToken('TK_FECHAR_PARENTESES') and self.checkToken('RW_THEN') and self.checkToken('RW_BEGIN') and self.sentencas() and self.checkToken('RW_END') and self.pfalsa():
+        elif self.checkToken('RW_IF') and self.checkToken('TK_ABRIR_PARENTESES') and self.condicao() and self.checkToken('TK_FECHAR_PARENTESES') and self.checkToken('RW_THEN') and self.checkToken('RW_BEGIN') and self.sentencas() and self.checkToken('RW_END') and self.checkToken('TK_PONTO_VIRGULA') and self.pfalsa():
             return True
         elif self.id() and self.checkToken('TK_ATRIBUICAO') and self.expressao():
             return True
@@ -368,6 +385,7 @@ class Parser:
         """
         if self.comando() and self.mais_sentencas():
             return True
+        
         return False
 
     def tipo_funcao(self):
@@ -385,6 +403,7 @@ class Parser:
         <funcao> ::= function <id> <parametros> : <tipo_funcao> ; <corpo> ; <rotina>
         """
         if self.checkToken('RW_FUNCAO') and self.id() and self.parametros() and self.checkToken('TK_DOIS_PONTOS') and self.tipo_funcao() and self.checkToken('TK_PONTO_VIRGULA') and self.corpo() and self.checkToken('TK_PONTO_VIRGULA') and self.rotina():
+            temp_scope.pop(-1)
             return True
         return False
 
@@ -393,16 +412,32 @@ class Parser:
         <procedimento> ::= procedure <id> <parametros> ; <corpo> ; <rotina>
         """
         if self.checkToken('procedure') and self.id() and self.parametros() and self.checkToken('TK_PONTO_VIRGULA') and self.corpo() and self.checkToken('TK_PONTO_VIRGULA') and self.rotina():
+            temp_scope.pop(-1)
             return True
         return False
+
+    def get_function_procedure_type(self):
+        index = 0
+        for idx in range(self.count+1, len(self.tokens_hist)):
+            if self.tokens_hist[idx]['value'] == ')': 
+                index = idx+2
+            if self.tokens_hist[idx]['value'] == ';':
+                break
+        type_ = [value['value'] for value in self.tokens_hist[index:idx]]
+        return ' '.join(type_)
 
     def rotina(self):
         """
         <rotina> ::= <procedimento> | <funcao> | <empty>
         """
         if self.look_ahead != '' and self.look_ahead['value'] == 'procedure':
+            temp_scope.append(scope.pop(0))
+            table.insert(self.tokens_hist[self.count]['value'], Symbol('procedure', None, None, temp_scope[-1]))
             return self.procedimento()
         elif self.look_ahead != '' and self.look_ahead['value'] == 'function':
+            temp_scope.append(scope.pop(0))
+            type_ = self.get_function_procedure_type()
+            table.insert(self.tokens_hist[self.count]['value'], Symbol('function', type_, None, temp_scope[-1]))
             return self.funcao()
         return True
 
@@ -469,6 +504,43 @@ class Parser:
         """
         <id> ::= a | b | ... | z | <conteudoPilha>
         """
+        scope = None
+        if len(temp_scope) != 0:
+            scope = temp_scope[-1]
+
+        if self.tokens[0]['value'] == ':=':
+            value = ''
+            for idx in range(self.count+1, len(self.tokens_hist)):
+                if self.tokens_hist[idx]['value'] == ';' or self.tokens_hist[idx]['value'] == 'to': 
+                    break
+
+                value += self.tokens_hist[idx]['value']
+
+            table.updateValue(self.look_ahead['value'], value, scope)
+
+        if (self.tokens[0]['value'] == ',' or self.tokens[0]['value'] == ':'):
+            type_ = ''
+            can_add = False
+            for idx in range(self.count, len(self.tokens_hist)):
+                if self.tokens_hist[idx]['value'] == ';' or self.tokens_hist[idx]['value'] == ')': 
+                    break
+                if self.tokens_hist[idx]['value'] == ':': 
+                    can_add = True
+                if can_add:
+                    type_+= self.tokens_hist[idx]['value'] + ' '
+            
+            current_count = self.count
+            while self.tokens_hist[current_count]['value'] != ';':
+                current_count -= 1
+
+            if self.tokens_hist[current_count+1]['value'] == 'function' or self.tokens_hist[current_count+1]['value'] == 'procedure':
+                class_ = 'Paramater'
+            else:
+                class_ = 'var'
+
+            if type_ != '':
+                table.insert(self.look_ahead['value'], Symbol(class_, type_, None, scope))
+
         return self.checkToken('TK_IDENTIFICADOR') or self.conteudoPilha()
 
     def declara(self):
@@ -489,6 +561,7 @@ class Parser:
         """
         <programa> ::= program <id>; <corpo> • 
         """
+        temp_scope.append(scope.pop(0))
         return self.checkToken('RW_PROGRAMA') and self.id() and self.checkToken('TK_PONTO_VIRGULA') and self.corpo() and self.checkToken('TK_PONTO')
 
 
@@ -498,6 +571,9 @@ class Parser:
         Esta função vai chamar um método para executar uma determinada regra da gramática
         """
         answer = self.programa()
+        for symbol in table.table:
+            for item, value in symbol.items():
+                print(f'Variável: {item} / Classe: {value.class_} / Tipo: {value.type_} / Escopo: {value.scope} / Valor: {value.value}')
         if answer:
             return 'A cadeia de tokens foi aceita'
         else:

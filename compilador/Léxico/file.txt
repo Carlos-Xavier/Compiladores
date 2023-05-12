@@ -1,9 +1,8 @@
 program exemplo;
 var x, y, z: integer;
     p: pilha of real;
-    g: pilha of real;
 
-function somaPilha(p,a,c: pilha of real; c,d,e: pilha of integer): real;
+function somaPilha(p, a: pilha of real): real;
     var i: integer;
         soma: real;
     begin
@@ -16,9 +15,9 @@ function somaPilha(p,a,c: pilha of real; c,d,e: pilha of integer): real;
 
 begin
     p := somaPilha(p);
+    x := 2;
     p := # 1,2,3,4,5 #;
     conc:= concatena(p,# 1,2,3,4,5 #);
-    conc:= concatena(p,##);
     p := inverte(p);
     a := 0.342131231;
     read(x, y);
@@ -27,7 +26,7 @@ begin
       then
           begin
             a := 1;
-          end
+          end;
       else 
           begin 
             a:=2; 
