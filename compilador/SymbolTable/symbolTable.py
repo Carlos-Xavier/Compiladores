@@ -32,22 +32,3 @@ class SymbolTable:
             self.table.append(
                 {s: new}
             )
-
-
-    def find(self, s):
-        for st in [self] + self.get_previours_tables():
-            if s in st.table:
-                return st.table[s]
-            
-            return None
-
-    
-    def get_previous_tables(self):
-        prev_tables   = []
-        current_table = self.prev
-
-        while current_table is not None:
-            prev_table.append(current_table)
-            current_table = current_table.prev
-        
-        return prev_tables
