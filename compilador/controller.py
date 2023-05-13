@@ -1,6 +1,6 @@
 from Léxico.lexico import *
 from Sintático.sintatico import *
-
+from Semântico.semantico import *
 
 if __name__ == "__main__":
     lexical = Lexical("Léxico/file.txt")
@@ -12,6 +12,10 @@ if __name__ == "__main__":
     parser = Parser(tokens)
     result = parser.startTheAnalysis()
     print(result)
+    symbolsTable = parser.getSymbolsTable()
+    semantic = Semantico(symbolsTable)
+    semantic.startTheAnalysis()
+    
      
 
 
