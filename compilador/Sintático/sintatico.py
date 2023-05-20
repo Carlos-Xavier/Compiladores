@@ -564,16 +564,15 @@ class Parser:
         temp_scope.append(scope.pop(0))
         return self.checkToken('RW_PROGRAMA') and self.id() and self.checkToken('TK_PONTO_VIRGULA') and self.corpo() and self.checkToken('TK_PONTO')
 
-
+    def getSymbolsTable(self):
+        return table.table
+    
     def startTheAnalysis(self):
         """
         Entrada: cada token vai estar associado a uma regra de produção
         Esta função vai chamar um método para executar uma determinada regra da gramática
         """
         answer = self.programa()
-        for symbol in table.table:
-            for item, value in symbol.items():
-                print(f'Variável: {item} / Classe: {value.class_} / Tipo: {value.type_} / Escopo: {value.scope} / Valor: {value.value}')
         if answer:
             return 'A cadeia de tokens foi aceita'
         else:

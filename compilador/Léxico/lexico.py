@@ -4,8 +4,7 @@ import sys
 import os
 
 
-Symbols_table = {}
-
+SYMBOLS_TABLE = {}
 
 class Lexical:
     symbols_lex = Symbols()
@@ -144,11 +143,11 @@ class Lexical:
                 self.__tokens.append(
                     {'value': token, 'token': Token.reservedWord[token]})
             else:
-                if token not in Symbols_table:
-                    position = len(Symbols_table)
-                    Symbols_table[token] = {'position': position}
+                if token not in SYMBOLS_TABLE:
+                    position = len(SYMBOLS_TABLE)
+                    SYMBOLS_TABLE[token] = {'position': position}
                 else:
-                    position = Symbols_table[token]['position']
+                    position = SYMBOLS_TABLE[token]['position']
                 self.__tokens.append(
                     {'value': token, 'token': Token.TK_IDENTIFIER, 'position': position})
 
