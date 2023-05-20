@@ -143,13 +143,8 @@ class Lexical:
                 self.__tokens.append(
                     {'value': token, 'token': Token.reservedWord[token]})
             else:
-                if token not in SYMBOLS_TABLE:
-                    position = len(SYMBOLS_TABLE)
-                    SYMBOLS_TABLE[token] = {'position': position}
-                else:
-                    position = SYMBOLS_TABLE[token]['position']
                 self.__tokens.append(
-                    {'value': token, 'token': Token.TK_IDENTIFIER, 'position': position})
+                    {'value': token, 'token': Token.TK_IDENTIFIER})
 
         elif type == 2:
             self.__tokens.append(

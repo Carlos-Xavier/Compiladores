@@ -12,7 +12,9 @@ if __name__ == "__main__":
     parser = Parser(tokens)
     result = parser.startTheAnalysis()
     print(result)
-    symbolsTable = parser.getSymbolsTable()
+    symbolsTable, tokens_update = parser.getSymbolsTable()
+    for item in tokens_update:
+        print(item)
     semantic = Semantico(symbolsTable)
     semantic.startTheAnalysis()
     

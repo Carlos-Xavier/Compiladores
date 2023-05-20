@@ -22,7 +22,7 @@ class SymbolTable:
 
 
     def updateValue(self, s, value, scope):
-        for symbol in self.table:
+        for idx, symbol in enumerate(self.table):
             if s in symbol and symbol[s].scope == scope:
                 symbol[s].value.append(value)
                 break  
@@ -32,3 +32,4 @@ class SymbolTable:
             self.table.append(
                 {s: new}
             )
+        return idx

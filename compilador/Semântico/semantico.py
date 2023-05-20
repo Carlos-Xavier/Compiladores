@@ -1,4 +1,5 @@
 import sys
+import re
 
 class OperadoresRelacionais:
     maior = "maior"
@@ -7,17 +8,18 @@ class OperadoresRelacionais:
     menor_ou_igual = "menor_ou_igual"
 
 class OperadoresAritmeticos:
-    soma = "soma"
-    subtracao = "subtracao"
-    multiplicacao = "multiplicacao"
-    divisao = "divisao"
-    divisao_por_inteiro = "divisao_por_inteiro" 
+    soma = "+"
+    subtracao = "-"
+    multiplicacao = "*"
+    divisao = "/"
+    divisao_por_inteiro = "//" 
 
 class Semantico:
     def __init__(self, simbolos):
         self.operadores_Relacionais = OperadoresRelacionais()
         self.operadores_Aritmeticos = OperadoresAritmeticos()
-        self.tabela = simbolos;
+        self.table = simbolos
+        self.operators_arit_symbols = ['+', '-', '*', '/', '//']
 
     def maior(self, x,y):
         return x > y
@@ -58,6 +60,7 @@ class Semantico:
                    return True
                 return False
 
+
     def aritmetico(self, operacao, x, y):
         match operacao:
             case self.operadores_Aritmeticos.soma:
@@ -72,20 +75,64 @@ class Semantico:
                 return self.divisao_por_inteiro(x,y)
     
 
-    def checar_tipos(self,propriedade, valor):
-        if valor.type_ == ": integer ":
-            if valor.value[0].isdigit() == False:
-                print(f"Valor inicial inválido para a variável {propriedade}. Esperado: integer.")
-        elif valor.type_ == ": real ":
-            if not valor.value[0].replace('.', '', 1).isdigit():
-                    print(f"Valor inicial inválido para a variável {propriedade}. Esperado: real.")
-        elif valor.type_ == ": pilha of real ":   
-            if not valor.value[0].startswith('#') or not valor.value[0].endswith('#'):
-                    print(f"Valor inicial inválido para a variável {propriedade}. Esperado: pilha.")
+    def check_value_in_table(self, item, scope):
+        value_returned = None
+        for row in self.table:
+            if item in row and scope == row[item].scope:
+                value_returned = row[item].value[0]
+        
+        return value_returned
+
+
+    def check_value(self, propriedade, row):
+        value_returned = True
+        for value in row.value:
+            flag = self.check_value_in_table(value, row.scope)
+            if flag: value = flag
+            
+            if value[0] in self.operators_arit_symbols:
+                operator = self.operators_arit_symbols.index(value[0])
+                
+                x, y = re.search(r"\((.*?)\)", value).group(1).split(',')
+                x = self.check_value_in_table(x, row.scope) if self.check_value_in_table(x, row.scope) else x
+                y = self.check_value_in_table(y, row.scope) if self.check_value_in_table(y, row.scope) else y
+
+                value = self.aritmetico(self.operators_arit_symbols[operator], int(x), int(y))
+
+            if row.type_ == "integer ":
+                if not value.isdigit():
+                    raise Exception(f"Valor inicial inválido para a variável {propriedade}. Esperado: integer.")
+
+            elif row.type_ == "real ":
+                if not str(value).replace('.', '', 1).isdigit():
+                    raise Exception(f"Valor inicial inválido para a variável {propriedade}. Esperado: real.")
+
+            elif row.type_ == "pilha of real ":   
+                if not value.startswith('#') or not value.endswith('#'):
+                    raise Exception(f"Valor inicial inválido para a variável {propriedade}. Esperado: pilha.")
+
+        return value_returned
+
+
+    def check_type_value(self, propriedade, row):
+        items = ['concatena', 'inverte']
+
+        flag = False
+        for item in row.value:
+            if item.split('(')[0] in items: flag = True
+
+        if flag:
+            pass
+        else:
+            self.check_value(propriedade, row)
+
       
     def startTheAnalysis(self):
-        for simbolo in self.tabela:
+        for simbolo in self.table:
             for item, value in simbolo.items():
                 print(f'Variável: {item} / Classe: {value.class_} / Tipo: {value.type_} / Escopo: {value.scope} / Valor: {value.value}')
-                if value.class_ == 'var' and len(value.value) != 0:
-                    self.checar_tipos(item, value)
+                # if value.class_ == 'var' and len(value.value) != 0:
+                #     self.check_type_value(item, value)
+                # elif value.class_ == None:
+                #     print(f'{item} não foi declarado.')
+
