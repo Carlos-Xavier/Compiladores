@@ -520,7 +520,7 @@ class Parser:
             idx = table.updateValue(self.look_ahead['value'], value, scope)
             self.tokens_hist[self.count-1]['position'] = idx
 
-        if (self.tokens[0]['value'] == ',' or self.tokens[0]['value'] == ':'):
+        if (self.tokens[0]['value'] == ',' or self.tokens[0]['value'] == ':') or self.tokens[0]['value'] == ')':
             type_ = ''
             can_add = False
             for idx in range(self.count, len(self.tokens_hist)):
@@ -529,8 +529,8 @@ class Parser:
                 elif self.tokens_hist[idx]['value'] == ':': 
                     can_add = True
                 elif can_add:
-                    type_+= self.tokens_hist[idx]['value'] + ' '
-            
+                    type_ += self.tokens_hist[idx]['value'] + ' '
+
             current_count = self.count
             while self.tokens_hist[current_count]['value'] != ';':
                 current_count -= 1
@@ -539,6 +539,9 @@ class Parser:
                 class_ = 'Paramater'
             else:
                 class_ = 'var'
+
+            if type_ == '' and self.tokens_hist[self.count-1]['token'] == 'TK_IDENTIFICADOR':
+                self.tokens_hist[self.count-1]['position'] = table.getPosition(self.tokens_hist[self.count-1]['value'], scope)
 
             if type_ != '':
                 self.tokens_hist[self.count-1]['position'] = len(table.table)

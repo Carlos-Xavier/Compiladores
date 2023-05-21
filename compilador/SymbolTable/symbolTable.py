@@ -33,3 +33,11 @@ class SymbolTable:
                 {s: new}
             )
         return idx
+
+
+    def getPosition(self, s, scope):
+        for idx, symbol in enumerate(self.table):
+            if s in symbol and symbol[s].scope == scope:
+                break
+
+        return idx
