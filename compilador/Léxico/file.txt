@@ -2,34 +2,23 @@ program exemplo;
 var x, y, z, A: integer;
     p: pilha of real;
 
-function somaPilha(p, a: pilha of real): real;
+function somaPilha(p: pilha of real; a: real): pilha of real;
     var i: integer;
         soma: real;
     begin
         soma := 0;
         for i := 1 to length(p) do 
             begin
-                soma := / (i, 10);
+                soma := /(i, 10);
             end;
     end;
 
 begin
-    p := somaPilha(p);
-    A := 2;
+    p := somaPilha(#1,2,3,4,5#, 10);
+    x := 2;
+    A := 1;
     x := A;
     p := # 1,2,3,4,5 #;
-    conc:= concatena(p,# 1,2,3,4,5 #);
-    p := inverte(p);
-    a := 0.342131231;
     read(x, y);
     write(z);
-    if (>(a, 10)) 
-      then
-          begin
-            a := 1;
-          end;
-      else 
-          begin 
-            a:=2; 
-          end;
 end.

@@ -425,7 +425,7 @@ class Parser:
                 flag = True
         type_ = [value['value'] for value in self.tokens_hist[index:idx]]
         return ' '.join(type_)
-
+    
     def rotina(self):
         """
         <rotina> ::= <procedimento> | <funcao> | <empty>
@@ -592,3 +592,4 @@ class Parser:
             return 'A cadeia de tokens foi aceita'
         else:
             return 'O programa encerrou antes do esperado'
+
