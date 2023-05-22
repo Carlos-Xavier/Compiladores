@@ -36,7 +36,6 @@ class Parser:
     def checkToken(self, char):
         if self.look_ahead != '':
             if self.look_ahead['token'] == char:
-                #print(self.look_ahead['token'], char)
                 self.look_ahead = self.nextToken()
                 return True
             else:
@@ -112,7 +111,6 @@ class Parser:
         <num> ::= <num>
         """
         if self.look_ahead['token'] == 'TK_NUMERO':
-            #print(self.look_ahead)
             self.look_ahead = self.nextToken()
             return True
         return False
@@ -130,7 +128,6 @@ class Parser:
         <real> ::= <real>
         """
         if self.look_ahead['token'] == 'TK_FLOAT':
-            #print(self.look_ahead)
             self.look_ahead = self.nextToken()
             return True
         return False
@@ -421,7 +418,6 @@ class Parser:
         index = 0
         flag = False
         for idx in range(self.count+1, len(self.tokens_hist)):
-            print(self.tokens_hist[idx]['value'])
             if self.tokens_hist[idx]['value'] == ';' and flag:
                 break
             if self.tokens_hist[idx]['value'] == ')': 
@@ -539,9 +535,19 @@ class Parser:
                 current_count -= 1
 
             if self.tokens_hist[current_count+1]['value'] == 'function' or self.tokens_hist[current_count+1]['value'] == 'procedure':
-                class_ = 'Paramater'
+                class_ = 'parameter'
             else:
                 class_ = 'var'
+
+            Flag_current_parameter = False
+            current_count = self.count
+            while self.tokens_hist[current_count]['value'] != ';':
+                if self.tokens_hist[current_count]['value'] == ')':
+                    Flag_current_parameter = True
+                current_count += 1
+
+            if Flag_current_parameter and table.table[-1][list(table.table[-1].keys())[0]].class_ == 'parameter':
+                class_ = 'parameter'
 
             if type_ == '' and self.tokens_hist[self.count-1]['token'] == 'TK_IDENTIFICADOR':
                 self.tokens_hist[self.count-1]['position'] = table.getPosition(self.tokens_hist[self.count-1]['value'], scope)
