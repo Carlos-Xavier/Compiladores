@@ -419,11 +419,14 @@ class Parser:
 
     def get_function_procedure_type(self):
         index = 0
+        flag = False
         for idx in range(self.count+1, len(self.tokens_hist)):
+            print(self.tokens_hist[idx]['value'])
+            if self.tokens_hist[idx]['value'] == ';' and flag:
+                break
             if self.tokens_hist[idx]['value'] == ')': 
                 index = idx+2
-            if self.tokens_hist[idx]['value'] == ';':
-                break
+                flag = True
         type_ = [value['value'] for value in self.tokens_hist[index:idx]]
         return ' '.join(type_)
 
@@ -583,4 +586,3 @@ class Parser:
             return 'A cadeia de tokens foi aceita'
         else:
             return 'O programa encerrou antes do esperado'
-
