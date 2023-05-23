@@ -1,6 +1,9 @@
 program exemplo;
-var x, y, z, A: integer;
+var x, y, m, A: integer;
     p: pilha of real;
+    z: pilha of real;
+    a: pilha of real;
+    g: pilha of real;
 
 function somaPilha(p: pilha of real; a: real): pilha of real;
     var i: integer;
@@ -15,10 +18,12 @@ function somaPilha(p: pilha of real; a: real): pilha of real;
 
 begin
     p := somaPilha(#1,2,3,4,5#, 10);
-    x := 2;
+    a := # 1,2,3,4,5 #;
+    z := #6#;
+    g := concatena(a, z);
+    g := inverte(g);
+    x := length(g);
     A := 1;
     x := A;
     p := # 1,2,3,4,5 #;
-    read(x, y);
-    write(z);
 end.

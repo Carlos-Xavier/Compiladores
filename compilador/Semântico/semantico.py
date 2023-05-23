@@ -92,8 +92,11 @@ class Semantic:
     def invert(self, x):
         return x[::-1]
 
-    def write(self):
-        pass
+    def length(self, x):
+        x = x.strip('#')
+        x = x.replace(',', '')
+        x = list(x)
+        return len(x)
 
     def read(self):
         pass
@@ -129,9 +132,9 @@ class Semantic:
         count = 0
         for row in self.table:
             key = list(row.keys())[0]
-            if scope in row[key].scope and row[key].class_ == 'parameter':
-               types.append(row[key].type_)
-               count+=1
+            if scope == row[key].scope and row[key].class_ == 'parameter':
+                types.append(row[key].type_)
+                count+=1
         return count, types
     
     def checkIfTheFunctionCalIsCorrect(self,item, value):
@@ -154,14 +157,65 @@ class Semantic:
                 flag = True
         return amount == count
         
-               
-    def checkMethod(self, item, currentItemType):
+    def function_procedure(self, item, currentItemType):
         flag = False
-        item = item.split('(')[0]
         for row in self.table:
-            if (item in row and row[item].class_ == 'function') or (item in row and row[item].class_ == 'procedure'):
-                if row[item].type_.strip() == currentItemType.strip():
-                    flag = True
+                if (item in row and row[item].class_ == 'function') or (item in row and row[item].class_ == 'procedure'):
+                    if row[item].type_.strip() == currentItemType.strip():
+                        flag = True
+        return flag
+
+    def update_table(self, current_value, new_value, scope, item):
+        for row in self.table:
+            if item in row:
+                index = row[item].value.index(current_value)
+                row[item].value[0] = new_value
+        
+    def checkMethod(self, item, currentItemType, scope, property):
+        flag = False
+        type_ = item.split('(')[0]
+        if type_ == 'concatena':
+            flag = True
+        elif type_ == 'inverte':
+            flag = True
+        elif type_ == 'length':
+            flag = True
+        else:
+            flag = self.function_procedure(type_, currentItemType)
+            
+        return flag
+
+    def checkMethod_tokens(self, item, currentItemType, scope, property):
+        flag = False
+        type_ = str(item).split('(')[0]
+        if type_ == 'concatena':
+            x, y = re.search(r"\((.*?)\)", item).group(1).split(',')
+            x = self.check_value_in_table(x,scope) if self.check_value_in_table(x,scope) else x
+            y = self.check_value_in_table(y,scope) if self.check_value_in_table(y,scope) else y
+
+            result = self.concatenate(x, y)
+            self.checkType(property, result, 'pilha of real ')
+            self.update_table(item, result, scope, property)
+            flag = True
+        elif type_ == 'inverte':
+            x = re.search(r"\((.*?)\)", item).group(1)
+            x = self.check_value_in_table(x,scope) if self.check_value_in_table(x,scope) else x
+
+            result = self.invert(x)
+            self.checkType(property, result, 'pilha of real ')
+            self.update_table(item, result, scope, property)
+            flag = True
+        elif type_ == 'length':
+            x = re.search(r"\((.*?)\)", item).group(1)
+            y = self.check_value_in_table(x,scope) if self.check_value_in_table(x,scope) else x
+            self.checkType(x, y, 'pilha of real ')
+            result = self.length(y)
+            self.checkType(property, result, 'integer')
+            self.update_table(item, result, scope, property)
+            flag = True
+        else:
+            flag = self.function_procedure(type_, currentItemType)
+            
         return flag
     
     def check_value_in_table(self, item, scope):
@@ -172,43 +226,79 @@ class Semantic:
 
         return value_returned
 
-    def operational(self, value,scope):
-        if value[0] in self.arithmeticOperatorSymbols:
+    def check_scope_in_table(self, item, scope):
+        scope_returned = None
+        for row in self.table:
+            if (item in row and scope == row[item].scope):
+                scope_returned = row[item].scope[0]
+
+        return scope_returned
+
+    def operational(self, value, scope, property):
+        if str(value)[0] in self.arithmeticOperatorSymbols:
             x, y = re.search(r"\((.*?)\)", value).group(1).split(',')
             x = self.check_value_in_table(x,scope) if self.check_value_in_table(x,scope) else x
             y = self.check_value_in_table(y,scope) if self.check_value_in_table(y,scope) else y
-            return self.arithmetic(value[0], int(x), int(y))
+            result = self.arithmetic(value[0], int(x), int(y))
+            self.update_table(value, result, scope, property)
+            return result
 
     def checkType(self, property, value, type_):
         if type_ == "integer ":
-            if not value.isdigit():
+            if not str(value).isdigit():
                 raise Exception(f"Valor inicial inválido para a variável {property}. Esperado: integer.")
         elif type_ == "real ":
             if not str(value).replace('.', '', 1).isdigit():
                 raise Exception(f"Valor inicial inválido para a variável {property}. Esperado: real.")
         elif type_ == "pilha of real ":
-            if not value.startswith('#') or not value.endswith('#'):
+            if not str(value).startswith('#') or not value.endswith('#'):
                 raise Exception(f"Valor inicial inválido para a variável {property}. Esperado: pilha.")
             
     def checkVariabels(self, property, row):
         result = False
         for value in row.value:
             result = self.check_value_in_table(value, row.scope)
-            if not result and self.checkMethod(value, row.type_):
+            if not result and self.checkMethod(value, row.type_, row.scope, property):
                 continue
             if result:
                 value = result
             else:
-                result = self.operational(value, row.scope)
+                result = self.operational(value, row.scope, property)
                 if result:
                     value = result
             self.checkType(property, value, row.type_)
-        
+
+    def checkVariabels_tokens(self, property, row, value):
+        result = self.check_value_in_table(value, row.scope)
+        if not result and self.checkMethod_tokens(value, row.type_, row.scope, property):
+            return
+        if result:
+            value = result
+        else:
+            result = self.operational(value, row.scope, property)
+            if result:
+                value = result
+        self.checkType(property, value, row.type_)
+    
+    def get_sentence(self, index):
+        flag = False
+        final = ''
+        for idx, token in enumerate(self.tokens):
+            if index+2 == idx: flag = True
+            if token['value'] == ';' and flag: break
+            if flag:
+                final += token['value']
+
+        return final
 
     def startTheAnalysis(self):
+        print("\nAntes:\n")
         for simbolo in self.table:
             for item, value in simbolo.items():
                 print(f'Variável: {item} / Classe: {value.class_} / Tipo: {value.type_} / Escopo: {value.scope} / Valor: {value.value}')
+
+        for simbolo in self.table:
+            for item, value in simbolo.items():
                 if value.class_ == 'var' and len(value.value) != 0:
                     self.checkVariabels(item, value)
                 if value.class_ == 'function' or value.class_ == 'procedure':
@@ -216,3 +306,20 @@ class Semantic:
                         raise Exception(f"Número de paramêtros do método {item} não está correto")
                 if value.class_ == None:
                     raise Exception(f"{item} não foi declarado")
+        
+        scope = 'A'
+        flag = False
+        for idx, token in enumerate(self.tokens):
+            if token['value'] == 'begin': flag = True
+            if token['value'] == 'end': flag = False
+            if token['token'] == 'TK_IDENTIFICADOR' and 'position' in token and flag:
+                if self.check_scope_in_table(token['value'], scope) and self.tokens[idx+1]['value'] == ':=':
+                    simbolo = self.table[token['position']]
+                    key = list(simbolo.keys())[0]
+                    value = self.get_sentence(idx)
+                    self.checkVariabels_tokens(key, simbolo[key], value)
+
+        print("\nDepois:\n")
+        for simbolo in self.table:
+            for item, value in simbolo.items():
+                print(f'Variável: {item} / Classe: {value.class_} / Tipo: {value.type_} / Escopo: {value.scope} / Valor: {value.value}')
